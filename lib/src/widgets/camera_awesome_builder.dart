@@ -353,6 +353,22 @@ class _CameraWidgetBuilder extends State<CameraAwesomeBuilder>
     WidgetsBinding.instance.removeObserver(this);
     _cameraContext.dispose();
     _captureStateListener?.cancel();
+    // Give the orientation back.
+    //
+    // didChangeDependencies pins portraitUp, and setPreferredOrientations is an
+    // APPLICATION-wide, sticky setting rather than a property of this widget.
+    // Without this, showing the camera once leaves the HOST APP locked to
+    // portrait for the rest of its process, every other screen included, and
+    // Android stops offering its rotate button — correctly, since the app is
+    // now claiming portrait is the only orientation it supports.
+    //
+    // An empty list, not DeviceOrientation.values: empty defers to the platform
+    // default, which is whatever the host's manifest and the user's rotation
+    // setting say. Listing all four would instead assert that every
+    // orientation is acceptable, which is not a claim this plugin can make on
+    // behalf of an app it knows nothing about. Dart cannot read the current
+    // preference back, so deferring is the only honest restore available.
+    SystemChrome.setPreferredOrientations(const []);
     super.dispose();
   }
 
